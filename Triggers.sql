@@ -135,26 +135,30 @@ EXECUTE FUNCTION trg_wallet_transaction_limit();
 CREATE OR REPLACE FUNCTION trg_review_customer_purchased()
 RETURNS TRIGGER AS $$
 DECLARE
-    purchase_exists BOOLEAN;
+    order_contains_product BOOLEAN;
 BEGIN
-    -- Check if the customer has purchased the product at least once
+    -- Check if the order actually contains this product
     SELECT EXISTS (
         SELECT 1
-        FROM orders o
-        JOIN order_product op ON o.ord_id = op.ord_id
-        WHERE o.cust_id = NEW.cust_id
+        FROM order_product op
+        WHERE op.ord_id = NEW.ord_id
           AND op.prod_id = NEW.prod_id
-    ) INTO purchase_exists;
+    ) INTO order_contains_product;
 
-    -- Raise exception if no purchase exists
-    IF NOT purchase_exists THEN
-        RAISE EXCEPTION 'Customer % cannot review product % because they have not purchased it',
-            NEW.cust_id, NEW.prod_id;
+    IF NOT order_contains_product THEN
+        RAISE EXCEPTION 'Cannot review product % for order %: product not in order',
+            NEW.prod_id, NEW.ord_id;
     END IF;
 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Attach trigger to review table
+CREATE TRIGGER trg_review_purchase_check
+BEFORE INSERT ON review
+FOR EACH ROW
+EXECUTE FUNCTION trg_review_customer_purchased();
 
 
 
@@ -183,3 +187,9 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER trg_orders_limit_active_per_branch
+BEFORE INSERT ON orders
+FOR EACH ROW
+EXECUTE FUNCTION trg_orders_limit_per_customer_branch();
