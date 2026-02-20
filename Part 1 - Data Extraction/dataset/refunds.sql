@@ -13,8 +13,7 @@ CREATE TABLE
                 'Rejected refund'
             )
         ),
-        PRIMARY KEY (ord_id, prod_name),
-        FOREIGN KEY (ord_id, prod_name) REFERENCES order_product (ord_id, prod_name)
+        PRIMARY KEY (ord_id, prod_name)
     );
 INSERT INTO Refunds ("ord_id", "prod_name", "reason", "dec_time", "reg_time", "ref_status") VALUES
 (5, 'Floral Dress', 'Item stopped working after a few days', '2020-02-08 12:20:56.000+00', '2020-02-04 14:20:51.000+00', 'Approved refund'),
