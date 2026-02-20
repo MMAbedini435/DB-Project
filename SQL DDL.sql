@@ -51,7 +51,7 @@ CREATE TABLE
         sup_id INTEGER NOT NULL,
         supply_num INTEGER NOT NULL CHECK (supply_num > 0),
         lead_time_days INTEGER NOT NULL CHECK (lead_time_days > 0),
-        fin_price NUMERIC(12, 2) NOT NULL,
+        prod_cost NUMERIC(12, 2) NOT NULL,
         discount INTEGER NOT NULL CHECK (discount BETWEEN 0 AND 100) DEFAULT 0,
         ret_price NUMERIC(12, 2),
         PRIMARY KEY (branch_id, prod_id, sup_id),
@@ -72,73 +72,73 @@ CREATE TABLE
         salary NUMERIC(12, 2),
         relationship VARCHAR(5) CHECK (relationship IN ('NEW', 'LOYAL', 'VIP')),
         tax_exem INTEGER CHECK (tax_exem BETWEEN 0 AND 10),
-        subtype VARCHAR(20) CHECK (subtype IN ('Sales representative', 'Consumer'))
+        subtype VARCHAR(20)
     );
 
 CREATE TABLE
     review (
-        cust_id INTEGER NOT NULL,
+        ord_id INTEGER NOT NULL,
         prod_id INTEGER NOT NULL,
         is_public BOOLEAN NOT NULL DEFAULT TRUE,
-        score INTEGER NOT NULL CHECK (score BETWEEN 1 AND 5),
+        score INTEGER CHECK (score BETWEEN 1 AND 5),
         description TEXT,
         image_data BYTEA,
-        PRIMARY KEY (cust_id, prod_id),
-        FOREIGN KEY (cust_id) REFERENCES customer (cust_id),
+        PRIMARY KEY (ord_id, prod_id),
+        FOREIGN KEY (ord_id) REFERENCES orders (ord_id),
         FOREIGN KEY (prod_id) REFERENCES product (prod_id)
     );
 
 -- 4. Orders and related tables
 CREATE TABLE
     orders (
-        ord_id INTEGER NOT NULL,
-        pay_met VARCHAR(11) NOT NULL CHECK (
+        ord_id INTEGER NOT NULL, -- Order_ID
+        pay_met VARCHAR(11) NOT NULL CHECK ( -- Payment_Method
             pay_met IN (
                 'Credit Card',
                 'Debit Card',
                 'Cash',
-                'Wallet',
+                'In-App Wallet',
                 'BNPL'
             )
         ),
-        reg_time TIMESTAMPTZ NOT NULL,
-        proc_pri VARCHAR(8) CHECK (
-            proc_pri IN ('LOW', 'MEDIUM', 'HIGH', 'URGENT', 'CRITICAL')
+        reg_time TIMESTAMPTZ NOT NULL, -- Order_Date
+        proc_pri VARCHAR(8) CHECK ( -- Order_Priority
+            proc_pri IN ('Low', 'Medium', 'High', 'Urgent', 'Critical')
         ),
-        proc_stat VARCHAR(16) CHECK (
+        proc_stat VARCHAR(16) CHECK ( -- Order_Status
             proc_stat IN (
-                'Awaiting Payment',
-                'Product Securing',
+                'Pending Payment',
+                'Stocking',
                 'Shipped',
                 'Received',
                 'Unknown'
             )
         ),
-        branch_id INTEGER NOT NULL,
-        cust_id INTEGER NOT NULL,
-        rec_addr VARCHAR(300),
-        send_type VARCHAR(17) DEFAULT 'Normal' CHECK (
-            send_type IN ('Normal', 'Special', 'Same day delivery')
+        branch_id INTEGER NOT NULL, -- found from table branch
+        cust_id INTEGER NOT NULL, -- found from table customer
+        rec_addr VARCHAR(300), -- Shipping_Address
+        send_type VARCHAR(17) DEFAULT 'Normal' CHECK ( -- Shipping_Method
+            send_type IN ('Ordinary', 'Express', 'Same-day')
         ),
-        send_met VARCHAR(15) CHECK (
-            send_met IN ('Ground shipping', 'Airmail', 'Air freight')
+        send_met VARCHAR(15) CHECK ( -- Ship_Mode
+            send_met IN ('Ground', 'Air (Post)', 'Air (Freight)')
         ),
-        pack_type VARCHAR(22) CHECK (
+        pack_type VARCHAR(22) CHECK ( -- Packaging
             pack_type IN (
-                'Small box',
-                'Medium box',
-                'Large box',
-                'Small standard envelop',
-                'Large standard envelop',
-                'Small bubble mailer',
-                'Large bubble mailer'
+                'Box Small',
+                'Box Medium',
+                'Box Large',
+                'Envelope Small',
+                'Envelope Large',
+                'Bubble Envelope Small',
+                'Bubble Envelope Large'
             )
         ),
-        send_cost NUMERIC(12,2) CHECK (send_cost > 0),
-        send_time TIMESTAMPTZ NOT NULL CHECK (send_time >= reg_time),
-        dest_city VARCHAR(100) NOT NULL,
-        dest_dist VARCHAR(100) NOT NULL,
-        rec_postal VARCHAR(20) NOT NULL,
+        send_cost NUMERIC(12,2) CHECK (send_cost > 0), -- Shipping_Cost
+        send_time TIMESTAMPTZ NOT NULL CHECK (send_time >= reg_time), -- Ship_Date
+        dest_city VARCHAR(100) NOT NULL, -- City
+        dest_dist VARCHAR(100) NOT NULL, -- Region
+        rec_postal VARCHAR(20) NOT NULL, -- Zip_Code
         PRIMARY KEY (ord_id),
         FOREIGN KEY (branch_id) REFERENCES branch (branch_id),
         FOREIGN KEY (cust_id) REFERENCES customer (cust_id)
