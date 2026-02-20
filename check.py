@@ -1,41 +1,20 @@
 import pandas as pd
 
-file_path = "dataset/BDBKala_full.csv"
-column_name = "Order Quantity"
+# CSV file path
+csv_file = "dataset/csv/BDBKala_full.csv"
 
-chunk_size = 50_000  # adjust depending on memory
+# List of columns (or indices) you want to check
+# If your CSV has headers, use names like ["Order_Status","Payment_Method"]
+# If no headers, use indices like [0, 4, 5]
+wanted_columns = ["Order Priority","Order Status","Payment Method","Shipping Method","Ship Mode","Packaging","Shipping Cost","Ratings","Customer Segment","Gender"]
+# Read CSV
+df = pd.read_csv(csv_file)
 
-empty_rows = []
-non_integer_rows = []
-
-row_offset = 0  # track real row number in file
-
-for chunk in pd.read_csv(file_path, chunksize=chunk_size):
-    
-    # Track original row numbers
-    chunk.index = range(row_offset, row_offset + len(chunk))
-    row_offset += len(chunk)
-
-    col = chunk[column_name]
-
-    # 1️⃣ Check empty (NaN or blank)
-    empty_mask = col.isna() | (col.astype(str).str.strip() == "")
-    empty_rows.extend(chunk[empty_mask].index.tolist())
-
-    # 2️⃣ Check non-integer values
-    numeric_col = pd.to_numeric(col, errors="coerce")
-    non_integer_mask = (
-        numeric_col.isna() |                # not numeric
-        (numeric_col % 1 != 0)              # decimal values
-    ) & ~empty_mask                        # exclude already counted empty
-
-    non_integer_rows.extend(chunk[non_integer_mask].index.tolist())
-
-# Report results
-if not empty_rows and not non_integer_rows:
-    print("✅ 'Order Quantity' contains only valid integers.")
-else:
-    if empty_rows:
-        print(f"❌ Empty values found at rows: {empty_rows[:10]} ...")
-    if non_integer_rows:
-        print(f"❌ Non-integer values found at rows: {non_integer_rows[:10]} ...")
+for col in wanted_columns:
+    if col in df.columns:
+        unique_values = df[col].dropna().unique()
+        print(f"Column '{col}' has {len(unique_values)} unique values:")
+        print(unique_values)
+        print("-" * 50)
+    else:
+        print(f"Column '{col}' not found in CSV.")
