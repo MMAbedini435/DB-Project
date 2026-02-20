@@ -239,8 +239,6 @@ WHERE
     b.Ratings IS NOT NULL OR r.Comment IS NOT NULL 
 
 
--- refund
--- TODO
 
 -- Wallet
 INSERT INTO wallet (cust_id, balance)
@@ -251,5 +249,15 @@ FROM Wallet w
 JOIN customer c
     ON c.email = w.customer_email;
 
--- Wallet transactions
-
+-- refund
+INSERT INTO refund (ord_id, prod_id, reason, dec_time, reg_time, ref_status)
+SELECT
+    r.ord_id,
+    p.prod_id,
+    r.reason,
+    r.dec_time,
+    r.reg_time,
+    r.ref_status
+FROM Refunds r
+JOIN product p
+    ON p.p_name = r.prod_name;
