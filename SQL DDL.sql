@@ -50,7 +50,7 @@ CREATE TABLE
         prod_id INTEGER NOT NULL,
         sup_id INTEGER NOT NULL,
         supply_num INTEGER NOT NULL CHECK (supply_num > 0),
-        supply_time TIMESTAMPTZ NOT NULL,
+        lead_time_days INTEGER NOT NULL CHECK (lead_time_days > 0),
         fin_price NUMERIC(12, 2) NOT NULL,
         discount INTEGER NOT NULL CHECK (discount BETWEEN 0 AND 100) DEFAULT 0,
         ret_price NUMERIC(12, 2),
