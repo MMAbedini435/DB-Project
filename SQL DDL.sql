@@ -149,6 +149,9 @@ CREATE TABLE
         ord_id INTEGER NOT NULL,
         prod_id INTEGER NOT NULL,
         num INTEGER NOT NULL CHECK (num > 0),
+        unit_price NUMERIC(12,2) CHECK (unit_price > 0),
+        discount INTEGER CHECK (discount BETWEEN 0 AND 100) DEFAULT 0,
+        production_cost NUMERIC(12,2) CHECK (production_cost > 0),
         PRIMARY KEY (ord_id, prod_id),
         FOREIGN KEY (ord_id) REFERENCES orders (ord_id),
         FOREIGN KEY (prod_id) REFERENCES product (prod_id)

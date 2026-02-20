@@ -205,11 +205,14 @@ JOIN customer c
     ON c.email = b.Email; -- email id
 
 -- Order/Product
-INSERT INTO order_product (ord_id, prod_id, num)
+INSERT INTO order_product (ord_id, prod_id, num, unit_price, discount, production_cost)
 SELECT DISTINCT 
     b.Order_ID, 
     p.prod_id, 
-    b.Order_Quantity
+    b.Order_Quantity,
+    b.Unit_Price AS unit_price,
+    b.Discount AS discount,
+    b.Unit_Cost AS production_cost
 FROM 
     BDB b
 JOIN 
@@ -247,4 +250,6 @@ SELECT
 FROM Wallet w
 JOIN customer c
     ON c.email = w.customer_email;
+
+-- Wallet transactions
 
