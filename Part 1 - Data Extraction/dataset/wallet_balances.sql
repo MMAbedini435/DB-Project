@@ -1,4 +1,4 @@
-CREATE TABLE Wallet(
+CREATE TABLE Wallets(
    customer_name  VARCHAR(24) NOT NULL
   ,customer_email VARCHAR(35) NOT NULL
   ,customer_phone VARCHAR(22) NOT NULL
