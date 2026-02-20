@@ -17,7 +17,7 @@ CREATE TABLE
         subcat_name VARCHAR(100) NOT NULL,
         p_name VARCHAR(200) NOT NULL,
         tax_exem INTEGER CHECK (tax_exem BETWEEN 0 AND 10),
-        other_details JSON,
+        other_details JSONB,
         FOREIGN KEY (cat_id, subcat_name) REFERENCES subcategory (cat_id, subcat_name)
     );
 
@@ -52,7 +52,7 @@ CREATE TABLE
         supply_num INTEGER NOT NULL CHECK (supply_num > 0),
         lead_time_days INTEGER NOT NULL CHECK (lead_time_days > 0),
         prod_cost NUMERIC(12, 2) NOT NULL,
-        discount INTEGER NOT NULL CHECK (discount BETWEEN 0 AND 100) DEFAULT 0,
+        discount NUMERIC(12, 2) NOT NULL CHECK (discount BETWEEN 0 AND 1) DEFAULT 0,
         ret_price NUMERIC(12, 2),
         PRIMARY KEY (branch_id, prod_id, sup_id),
         FOREIGN KEY (branch_id) REFERENCES branch (branch_id),
@@ -60,7 +60,9 @@ CREATE TABLE
         FOREIGN KEY (sup_id) REFERENCES supplier (sup_id)
     );
 
--- 3. Customers and reviews
+
+-- 3. Customers, orders and related tables
+
 CREATE TABLE
     customer (
         cust_id INTEGER PRIMARY KEY,
@@ -68,27 +70,13 @@ CREATE TABLE
         age INTEGER CHECK (age >= 0),
         sex CHAR(1),
         cust_phone VARCHAR(50),
-        email VARCHAR(200),
+        email VARCHAR(200) NOT NULL,
         salary NUMERIC(12, 2),
         relationship VARCHAR(5) CHECK (relationship IN ('NEW', 'LOYAL', 'VIP')),
         tax_exem INTEGER CHECK (tax_exem BETWEEN 0 AND 10),
         subtype VARCHAR(20)
     );
 
-CREATE TABLE
-    review (
-        ord_id INTEGER NOT NULL,
-        prod_id INTEGER NOT NULL,
-        is_public BOOLEAN NOT NULL DEFAULT TRUE,
-        score INTEGER CHECK (score BETWEEN 1 AND 5),
-        description TEXT,
-        image_data BYTEA,
-        PRIMARY KEY (ord_id, prod_id),
-        FOREIGN KEY (ord_id) REFERENCES orders (ord_id),
-        FOREIGN KEY (prod_id) REFERENCES product (prod_id)
-    );
-
--- 4. Orders and related tables
 CREATE TABLE
     orders (
         ord_id INTEGER NOT NULL, -- Order_ID
@@ -172,10 +160,25 @@ CREATE TABLE
             )
         ),
         PRIMARY KEY (ord_id, prod_id),
-        FOREIGN KEY (ord_id) REFERENCES orders (ord_id),
-        FOREIGN KEY (prod_id) REFERENCES product (prod_id),
         FOREIGN KEY (ord_id, prod_id) REFERENCES order_product (ord_id, prod_id)
     );
+
+
+-- 4. Reviews
+
+CREATE TABLE
+    review (
+        ord_id INTEGER NOT NULL,
+        prod_id INTEGER NOT NULL,
+        is_public BOOLEAN NOT NULL DEFAULT TRUE,
+        score INTEGER NOT NULL CHECK (score BETWEEN 1 AND 5),
+        description TEXT,
+        image_data BYTEA,
+        PRIMARY KEY (ord_id, prod_id),
+        FOREIGN KEY (ord_id) REFERENCES orders (ord_id),
+        FOREIGN KEY (prod_id) REFERENCES product (prod_id)
+    );
+
 
 -- 5. Wallet and transactions
 CREATE TABLE
@@ -188,14 +191,14 @@ CREATE TABLE
 CREATE TABLE
     wallet_transaction (
         cust_id INTEGER NOT NULL,
-        tran_id INTEGER PRIMARY KEY,
+        tran_id INTEGER NOT NULL,
         tran_date TIMESTAMPTZ NOT NULL,
         sub_type VARCHAR(10) NOT NULL CHECK (sub_type IN ('Deposit', 'Withdrawal')),
         amount NUMERIC(12,2),
         ord_id INTEGER,
         PRIMARY KEY (tran_id),
         FOREIGN KEY (cust_id) REFERENCES customer (cust_id),
-        FOREIGN KEY (ord_id) REFERENCES Orders (ord_id)
+        FOREIGN KEY (ord_id) REFERENCES orders (ord_id)
     );
 
 -- 6. BNPL (Buy Now Pay Later)
