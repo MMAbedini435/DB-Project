@@ -26,7 +26,7 @@ EXECUTE FUNCTION trg_orders_set_regtime();
 CREATE OR REPLACE FUNCTION trg_orders_proc_stat_fsm()
 RETURNS TRIGGER AS $$
 DECLARE
-    valid_transitions CONSTANT jsonb := '{
+    valid_transitions jsonb := '{
         "Product Securing": ["Awaiting Payment"],
         "Awaiting Payment": ["Shipped"],
         "Shipped": ["Received"],
@@ -94,8 +94,10 @@ RETURNS TRIGGER AS $$
 DECLARE
     current_balance NUMERIC;
     new_balance NUMERIC;
+    current_debt NUMERIC;
+    available_debt NUMERIC;
 BEGIN
-    -- Get current balance
+    -- Get current wallet balance
     SELECT balance INTO current_balance
     FROM wallet
     WHERE cust_id = NEW.cust_id;
@@ -103,11 +105,42 @@ BEGIN
     -- Compute new balance
     IF NEW.sub_type = 'Deposit' THEN
         new_balance := current_balance + NEW.amount;
+
     ELSIF NEW.sub_type = 'Withdrawal' THEN
-        new_balance := current_balance - NEW.amount;
-        IF new_balance < - (SELECT debt_limit FROM wallet WHERE cust_id = NEW.cust_id) THEN
-            RAISE EXCEPTION 'Withdrawal would exceed customer debt limit';
+        -- New balance cannot be negative
+        IF NEW.amount > current_balance THEN
+            RAISE EXCEPTION 'Withdrawal exceeds current wallet balance';
         END IF;
+
+        -- Compute current debt from active orders (excluding refunded items)
+        SELECT COALESCE(SUM(op.num * (bps.ret_price * (1 - bps.discount)) * (1 + (COALESCE(c.tax_exem,0) + COALESCE(p.tax_exem,0))/100) - COALESCE(bp_sum,0)),0)
+        INTO current_debt
+        FROM orders o
+        JOIN order_product op ON op.ord_id = o.ord_id
+        JOIN product p ON p.prod_id = op.prod_id
+        JOIN branch_product_supplier bps ON bps.prod_id = op.prod_id AND bps.branch_id = o.branch_id
+        JOIN customer c ON c.cust_id = o.cust_id
+        LEFT JOIN (
+            SELECT ord_id, SUM(amount) AS bp_sum
+            FROM bnpl_payment
+            GROUP BY ord_id
+        ) bp ON bp.ord_id = o.ord_id
+        LEFT JOIN refund r ON r.ord_id = op.ord_id AND r.prod_id = op.prod_id
+        WHERE o.cust_id = NEW.cust_id
+          AND r.ord_id IS NULL;
+
+        -- Check against available debt limit
+        SELECT debt_limit - current_debt INTO available_debt
+        FROM wallet
+        WHERE cust_id = NEW.cust_id;
+
+        IF NEW.amount > available_debt THEN
+            RAISE EXCEPTION 'Withdrawal exceeds available BNPL/debt capacity';
+        END IF;
+
+        -- Update balance
+        new_balance := current_balance - NEW.amount;
+
     ELSE
         RAISE EXCEPTION 'Invalid wallet_transaction sub_type: %', NEW.sub_type;
     END IF;
@@ -122,6 +155,8 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Attach trigger
+DROP TRIGGER IF EXISTS trg_wallet_transaction ON wallet_transaction;
+
 CREATE TRIGGER trg_wallet_transaction
 BEFORE INSERT ON wallet_transaction
 FOR EACH ROW
