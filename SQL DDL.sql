@@ -72,19 +72,19 @@ CREATE TABLE
         salary NUMERIC(12, 2),
         relationship VARCHAR(5) CHECK (relationship IN ('NEW', 'LOYAL', 'VIP')),
         tax_exem INTEGER CHECK (tax_exem BETWEEN 0 AND 10),
-        subtype VARCHAR(20) CHECK (subtype IN ('Sales representative', 'Consumer'))
+        subtype VARCHAR(20)
     );
 
 CREATE TABLE
     review (
-        cust_id INTEGER NOT NULL,
+        ord_id INTEGER NOT NULL,
         prod_id INTEGER NOT NULL,
         is_public BOOLEAN NOT NULL DEFAULT TRUE,
         score INTEGER NOT NULL CHECK (score BETWEEN 1 AND 5),
         description TEXT,
         image_data BYTEA,
-        PRIMARY KEY (cust_id, prod_id),
-        FOREIGN KEY (cust_id) REFERENCES customer (cust_id),
+        PRIMARY KEY (ord_id, prod_id),
+        FOREIGN KEY (ord_id) REFERENCES orders (ord_id),
         FOREIGN KEY (prod_id) REFERENCES product (prod_id)
     );
 
