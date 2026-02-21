@@ -5,7 +5,7 @@ RETURNS TABLE (
 LANGUAGE sql
 AS $$
 SELECT SUM(
-    op.num * (bps.ret_price * (1 - bps.discount)) *
+    op.num * (bps.ret_price * (1 - bps.discount / 100)) *
     (COALESCE(p.tax_exem, 0) + COALESCE(c.tax_exem, 0)) / 100
 ) AS total_taxes
 FROM orders o

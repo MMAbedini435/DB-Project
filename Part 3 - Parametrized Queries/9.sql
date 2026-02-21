@@ -7,7 +7,7 @@ RETURNS TABLE (
 LANGUAGE sql
 AS $$
 WITH owed AS (
-    SELECT SUM(op.num * (bps.ret_price * (1 - bps.discount)) *
+    SELECT SUM(op.num * (bps.ret_price * (1 - bps.discount / 100)) *
         (1 + (COALESCE(p.tax_exem,0)+COALESCE(c.tax_exem,0))/100)) AS total_owed
     FROM orders o
     JOIN order_product op ON op.ord_id = o.ord_id

@@ -7,7 +7,7 @@ LANGUAGE sql
 AS $$
 SELECT
     p.subcat_name,
-    SUM((bps.ret_price * (1 - bps.discount) - bps.prod_cost) * op.num) / SUM(op.num) AS avg_profit_per_item
+    SUM((bps.ret_price * (1 - bps.discount / 100) - bps.prod_cost) * op.num) / SUM(op.num) AS avg_profit_per_item
 FROM product p
 JOIN subcategory s ON p.cat_id = s.cat_id AND p.subcat_name = s.subcat_name
 JOIN order_product op ON op.prod_id = p.prod_id

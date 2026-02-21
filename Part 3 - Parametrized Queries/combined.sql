@@ -7,7 +7,7 @@ LANGUAGE sql
 AS $$
 SELECT
     p.subcat_name,
-    SUM((bps.ret_price * (1 - bps.discount) - bps.prod_cost) * op.num) / SUM(op.num) AS avg_profit_per_item
+    SUM((bps.ret_price * (1 - bps.discount / 100) - bps.prod_cost) * op.num) / SUM(op.num) AS avg_profit_per_item
 FROM product p
 JOIN subcategory s ON p.cat_id = s.cat_id AND p.subcat_name = s.subcat_name
 JOIN order_product op ON op.prod_id = p.prod_id
@@ -101,9 +101,9 @@ SELECT
     c.cust_id,
     COALESCE(SUM(wt.amount),0)
     +
-    COALESCE(SUM(op.num * (bps.ret_price * (1 - bps.discount))),0)
+    COALESCE(SUM(op.num * (bps.ret_price * (1 - bps.discount / 100))),0)
     +
-    COALESCE(SUM(op.num * (bps.ret_price * (1 - bps.discount)) *
+    COALESCE(SUM(op.num * (bps.ret_price * (1 - bps.discount / 100)) *
           (COALESCE(p.tax_exem,0) + COALESCE(c.tax_exem,0))/100),0)
     +
     COALESCE(SUM(bp.amount),0)
@@ -252,7 +252,7 @@ RETURNS TABLE (
 LANGUAGE sql
 AS $$
 SELECT SUM(
-    op.num * (bps.ret_price * (1 - bps.discount)) *
+    op.num * (bps.ret_price * (1 - bps.discount / 100)) *
     (COALESCE(p.tax_exem, 0) + COALESCE(c.tax_exem, 0)) / 100
 ) AS total_taxes
 FROM orders o
@@ -329,7 +329,7 @@ RETURNS TABLE (
 LANGUAGE sql
 AS $$
 WITH owed AS (
-    SELECT SUM(op.num * (bps.ret_price * (1 - bps.discount)) *
+    SELECT SUM(op.num * (bps.ret_price * (1 - bps.discount / 100)) *
         (1 + (COALESCE(p.tax_exem,0)+COALESCE(c.tax_exem,0))/100)) AS total_owed
     FROM orders o
     JOIN order_product op ON op.ord_id = o.ord_id
@@ -354,9 +354,5 @@ FROM wallet w, owed, paid_bnpl
 WHERE w.cust_id = cust_id_param;
 $$;
 SELECT *
-FROM bnpl_available_debt(10, 500);
+FROM bnpl_available_debt(15, 500);
 -- =================
-
-
--- =================
-

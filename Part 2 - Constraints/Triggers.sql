@@ -113,7 +113,7 @@ BEGIN
         END IF;
 
         -- Compute current debt from active orders (excluding refunded items)
-        SELECT COALESCE(SUM(op.num * (bps.ret_price * (1 - bps.discount)) * (1 + (COALESCE(c.tax_exem,0) + COALESCE(p.tax_exem,0))/100) - COALESCE(bp_sum,0)),0)
+        SELECT COALESCE(SUM(op.num * (bps.ret_price * (1 - bps.discount / 100)) * (1 + (COALESCE(c.tax_exem,0) + COALESCE(p.tax_exem,0))/100) - COALESCE(bp_sum,0)),0)
         INTO current_debt
         FROM orders o
         JOIN order_product op ON op.ord_id = o.ord_id

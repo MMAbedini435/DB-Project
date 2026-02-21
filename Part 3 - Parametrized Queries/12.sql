@@ -9,9 +9,9 @@ SELECT
     c.cust_id,
     COALESCE(SUM(wt.amount),0)
     +
-    COALESCE(SUM(op.num * (bps.ret_price * (1 - bps.discount))),0)
+    COALESCE(SUM(op.num * (bps.ret_price * (1 - bps.discount / 100))),0)
     +
-    COALESCE(SUM(op.num * (bps.ret_price * (1 - bps.discount)) *
+    COALESCE(SUM(op.num * (bps.ret_price * (1 - bps.discount / 100)) *
           (COALESCE(p.tax_exem,0) + COALESCE(c.tax_exem,0))/100),0)
     +
     COALESCE(SUM(bp.amount),0)
