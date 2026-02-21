@@ -71,7 +71,7 @@ BEGIN
     WHERE cust_id = NEW.cust_id;
 
     -- Reject CRITICAL for low-income small business customers
-    IF cust_subtype = 'Sales representative' AND cust_salary < 5000 AND NEW.proc_pri = 'CRITICAL' THEN
+    IF cust_subtype = 'Small Business' AND cust_salary < 10000 AND NEW.proc_pri = 'CRITICAL' THEN
         RAISE EXCEPTION 'Cannot assign CRITICAL priority to low-income Sales representative';
     END IF;
 

@@ -1,6 +1,3 @@
--- ======================================
--- 0️⃣ Drop all tables in dependency order
--- ======================================
 DROP TABLE IF EXISTS bnpl_payment CASCADE;
 DROP TABLE IF EXISTS bnpl_contract CASCADE;
 DROP TABLE IF EXISTS wallet_transaction CASCADE;
@@ -72,7 +69,7 @@ CREATE TABLE
         supply_num INTEGER NOT NULL CHECK (supply_num > 0),
         lead_time_days INTEGER NOT NULL CHECK (lead_time_days > 0),
         prod_cost NUMERIC(12, 2) NOT NULL,
-        discount INTEGER DEFAULT 0,
+        discount INTEGER DEFAULT 0 CHECK (discount BETWEEN 0 and 100),
         ret_price NUMERIC(12, 2),
         PRIMARY KEY (branch_id, prod_id, sup_id),
         FOREIGN KEY (branch_id) REFERENCES branch (branch_id),
@@ -94,13 +91,13 @@ CREATE TABLE
         salary NUMERIC(12, 2),
         relationship VARCHAR(5) CHECK (relationship IN ('NEW', 'LOYAL', 'VIP')),
         tax_exem INTEGER CHECK (tax_exem BETWEEN 0 AND 10),
-        subtype VARCHAR(20)
+        subtype VARCHAR(20) CHECK (sub_type in ()'Consumer', 'Corporate', 'Small Business', 'Home Office'))
     );
 
 CREATE TABLE
     orders (
-        ord_id INTEGER NOT NULL, -- Order_ID
-        pay_met VARCHAR(20) NOT NULL CHECK ( -- Payment_Method
+        ord_id INTEGER NOT NULL,
+        pay_met VARCHAR(20) NOT NULL CHECK (
             pay_met IN (
                 'Credit Card',
                 'Debit Card',
@@ -109,11 +106,11 @@ CREATE TABLE
                 'BNPL'
             )
         ),
-        reg_time TIMESTAMPTZ NOT NULL, -- Order_Date
-        proc_pri VARCHAR(8) CHECK ( -- Order_Priority
+        reg_time TIMESTAMPTZ NOT NULL,
+        proc_pri VARCHAR(8) CHECK (
             proc_pri IN ('Low', 'Medium', 'High', 'Urgent', 'Critical')
         ),
-        proc_stat VARCHAR(16) CHECK ( -- Order_Status
+        proc_stat VARCHAR(16) CHECK (
             proc_stat IN (
                 'Pending Payment',
                 'Stocking',
@@ -122,16 +119,16 @@ CREATE TABLE
                 'Unknown'
             )
         ),
-        branch_id INTEGER NOT NULL, -- found from table branch
-        cust_id INTEGER NOT NULL, -- found from table customer
-        rec_addr VARCHAR(300), -- Shipping_Address
-        send_type VARCHAR(17) DEFAULT 'Ordinary' CHECK ( -- Shipping_Method
+        branch_id INTEGER NOT NULL,
+        cust_id INTEGER NOT NULL,
+        rec_addr VARCHAR(300),
+        send_type VARCHAR(17) DEFAULT 'Ordinary' CHECK (
             send_type IN ('Ordinary', 'Express', 'Same-Day')
         ),
-        send_met VARCHAR(15) CHECK ( -- Ship_Mode
+        send_met VARCHAR(15) CHECK (
             send_met IN ('Ground', 'Air (Post)', 'Air (Freight)')
         ),
-        pack_type VARCHAR(22) CHECK ( -- Packaging
+        pack_type VARCHAR(22) CHECK (
             pack_type IN (
                 'Box Small',
                 'Box Medium',
@@ -142,11 +139,11 @@ CREATE TABLE
                 'Bubble Envelope Large'
             )
         ),
-        send_cost NUMERIC(12,2) CHECK (send_cost > 0), -- Shipping_Cost
-        send_time TIMESTAMPTZ NOT NULL, -- Ship_Date
-        dest_city VARCHAR(100) NOT NULL, -- City
-        dest_dist VARCHAR(100) NOT NULL, -- Region
-        rec_postal VARCHAR(20) NOT NULL, -- Zip_Code
+        send_cost NUMERIC(12,2) CHECK (send_cost > 0),
+        send_time TIMESTAMPTZ NOT NULL CHECK (send_time >= reg_time),
+        dest_city VARCHAR(100) NOT NULL,
+        dest_dist VARCHAR(100) NOT NULL,
+        rec_postal VARCHAR(20) NOT NULL,
         PRIMARY KEY (ord_id),
         FOREIGN KEY (branch_id) REFERENCES branch (branch_id),
         FOREIGN KEY (cust_id) REFERENCES customer (cust_id)
@@ -158,7 +155,7 @@ CREATE TABLE
         prod_id INTEGER NOT NULL,
         num INTEGER NOT NULL CHECK (num > 0),
         unit_price NUMERIC(12,2) CHECK (unit_price > 0),
-        discount INTEGER DEFAULT 0,
+        discount INTEGER DEFAULT 0 CHECK (discount BETWEEN 0 and 100),
         production_cost NUMERIC(12,2) CHECK (production_cost > 0),
         PRIMARY KEY (ord_id, prod_id),
         FOREIGN KEY (ord_id) REFERENCES orders (ord_id),

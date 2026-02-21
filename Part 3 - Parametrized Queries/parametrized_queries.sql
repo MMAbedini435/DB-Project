@@ -38,14 +38,21 @@ SELECT
 FROM customer c
 JOIN orders o ON o.cust_id = c.cust_id
 JOIN order_product op ON op.ord_id = o.ord_id
-JOIN branch_product_supplier bps ON bps.prod_id = op.prod_id
-LEFT JOIN refund r ON r.ord_id = op.ord_id AND r.prod_id = op.prod_id
+JOIN branch_product_supplier bps
+  ON bps.prod_id = op.prod_id
+ AND bps.branch_id = o.branch_id
+LEFT JOIN refund r
+  ON r.ord_id = op.ord_id
+ AND r.prod_id = op.prod_id
 WHERE c.relationship = 'NEW'
-  AND o.reg_time >= $1::date - INTERVAL '1 month'
+  AND o.reg_time >= $1 - INTERVAL '1 month'
+  AND o.reg_time <  $1
   AND r.ord_id IS NULL
-GROUP BY c.cust_id
+GROUP BY c.cust_id, c.cust_name, c.cust_phone
 HAVING COUNT(DISTINCT o.ord_id) >= $2
-   AND SUM(op.num * (bps.ret_price * (1 - bps.discount))) >= $3;
+   AND SUM(
+       op.num * bps.ret_price * (100 - bps.discount) / 100.0
+   ) >= $3;
 
 
 
