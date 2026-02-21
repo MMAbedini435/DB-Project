@@ -17,9 +17,6 @@ ALTER TABLE orders
     ALTER COLUMN proc_stat SET NOT NULL;
 
 ALTER TABLE orders
-    DROP CONSTRAINT orders_pack_type_check;
-
-ALTER TABLE orders
     ADD CONSTRAINT orders_pack_type_check
         CHECK (
             pack_type IN (
