@@ -1,4 +1,4 @@
-DROP TABLES IF EXISTS Refunds
+DROP TABLE IF EXISTS Refunds;
 
 CREATE TABLE
     Refunds (

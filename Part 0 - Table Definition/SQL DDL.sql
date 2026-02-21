@@ -91,7 +91,7 @@ CREATE TABLE
         salary NUMERIC(12, 2),
         relationship VARCHAR(5) CHECK (relationship IN ('NEW', 'LOYAL', 'VIP')),
         tax_exem INTEGER CHECK (tax_exem BETWEEN 0 AND 10),
-        subtype VARCHAR(20) CHECK (sub_type in ()'Consumer', 'Corporate', 'Small Business', 'Home Office'))
+        subtype VARCHAR(20) CHECK (subtype in ('Consumer', 'Corporate', 'Small Business', 'Home Office'))
     );
 
 CREATE TABLE
