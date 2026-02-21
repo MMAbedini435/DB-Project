@@ -189,7 +189,7 @@ SELECT DISTINCT
     b.Order_Priority AS proc_pri,
     b.Order_Status AS proc_stat,
     -- pick random branch_id
-    (SELECT branch_id FROM branch ORDER BY RANDOM() LIMIT 1) AS branch_id,
+    1 AS branch_id,
     c.cust_id AS cust_id,
     b.Shipping_Address AS rec_addr,
     b.Shipping_Method AS send_type,
@@ -202,7 +202,8 @@ SELECT DISTINCT
     b.Zip_Code AS rec_postal
 FROM BDB b
 JOIN customer c
-    ON c.email = b.Email; -- email id
+    ON c.email = b.Email -- email id
+ON CONFLICT (ord_id) DO NOTHING;
 
 -- Order/Product
 INSERT INTO order_product (ord_id, prod_id, num, unit_price, discount, production_cost)
@@ -211,12 +212,13 @@ SELECT DISTINCT
     p.prod_id, 
     b.Order_Quantity,
     b.Unit_Price AS unit_price,
-    b.Discount AS discount,
+    b.Discount * 100 AS discount,
     b.Unit_Cost AS production_cost
 FROM 
     BDB b
 JOIN 
-    product p ON b.Product_Name = p.Product_Name
+    product p ON b.Product_Name = p.p_name;
+-- ON CONFLICT (discount) DO NOTHING;
 
 -- Review
 INSERT INTO review (ord_id, prod_id, is_public, score, description, image_data)
@@ -230,13 +232,13 @@ SELECT DISTINCT
 FROM 
     BDB b
 JOIN 
-    product p ON b.Product_Name = p.product_name 
+    product p ON b.Product_Name = p.p_name
 -- left join Reviews so we still get ratings even if there is no written comment
 LEFT JOIN 
     Reviews r ON b.Order_ID = r.Order_ID AND b.Product_Name = r.Product_Name
 WHERE 
     -- ensure we only create a review row if there's actually a rating or comment to migrate
-    b.Ratings IS NOT NULL OR r.Comment IS NOT NULL 
+    b.Ratings IS NOT NULL OR r.Comment IS NOT NULL;
 
 
 
@@ -244,10 +246,12 @@ WHERE
 INSERT INTO wallet (cust_id, balance)
 SELECT
     c.cust_id,
-    w.wallet_balance::NUMERIC(12,2)
-FROM Wallet w
+    MIN(w.wallet_balance)::NUMERIC(12,2)
+FROM Wallets w
 JOIN customer c
-    ON c.email = w.customer_email;
+    ON c.email = w.customer_email
+GROUP BY
+	c.cust_id;
 
 -- refund
 INSERT INTO refund (ord_id, prod_id, reason, dec_time, reg_time, ref_status)

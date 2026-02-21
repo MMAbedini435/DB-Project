@@ -1,3 +1,23 @@
+-- ======================================
+-- 0️⃣ Drop all tables in dependency order
+-- ======================================
+DROP TABLE IF EXISTS bnpl_payment CASCADE;
+DROP TABLE IF EXISTS bnpl_contract CASCADE;
+DROP TABLE IF EXISTS wallet_transaction CASCADE;
+DROP TABLE IF EXISTS wallet CASCADE;
+DROP TABLE IF EXISTS review CASCADE;
+DROP TABLE IF EXISTS refund CASCADE;
+DROP TABLE IF EXISTS order_product CASCADE;
+DROP TABLE IF EXISTS orders CASCADE;
+DROP TABLE IF EXISTS customer CASCADE;
+DROP TABLE IF EXISTS branch_product_supplier CASCADE;
+DROP TABLE IF EXISTS branch CASCADE;
+DROP TABLE IF EXISTS boss CASCADE;
+DROP TABLE IF EXISTS supplier CASCADE;
+DROP TABLE IF EXISTS product CASCADE;
+DROP TABLE IF EXISTS subcategory CASCADE;
+DROP TABLE IF EXISTS category CASCADE;
+
 -- 1. Product catalog
 CREATE TABLE
     category (cat_id INTEGER PRIMARY KEY);
@@ -52,7 +72,7 @@ CREATE TABLE
         supply_num INTEGER NOT NULL CHECK (supply_num > 0),
         lead_time_days INTEGER NOT NULL CHECK (lead_time_days > 0),
         prod_cost NUMERIC(12, 2) NOT NULL,
-        discount NUMERIC(12, 2) NOT NULL CHECK (discount BETWEEN 0 AND 1) DEFAULT 0,
+        discount INTEGER DEFAULT 0,
         ret_price NUMERIC(12, 2),
         PRIMARY KEY (branch_id, prod_id, sup_id),
         FOREIGN KEY (branch_id) REFERENCES branch (branch_id),
@@ -80,7 +100,7 @@ CREATE TABLE
 CREATE TABLE
     orders (
         ord_id INTEGER NOT NULL, -- Order_ID
-        pay_met VARCHAR(11) NOT NULL CHECK ( -- Payment_Method
+        pay_met VARCHAR(20) NOT NULL CHECK ( -- Payment_Method
             pay_met IN (
                 'Credit Card',
                 'Debit Card',
@@ -105,8 +125,8 @@ CREATE TABLE
         branch_id INTEGER NOT NULL, -- found from table branch
         cust_id INTEGER NOT NULL, -- found from table customer
         rec_addr VARCHAR(300), -- Shipping_Address
-        send_type VARCHAR(17) DEFAULT 'Normal' CHECK ( -- Shipping_Method
-            send_type IN ('Ordinary', 'Express', 'Same-day')
+        send_type VARCHAR(17) DEFAULT 'Ordinary' CHECK ( -- Shipping_Method
+            send_type IN ('Ordinary', 'Express', 'Same-Day')
         ),
         send_met VARCHAR(15) CHECK ( -- Ship_Mode
             send_met IN ('Ground', 'Air (Post)', 'Air (Freight)')
@@ -123,7 +143,7 @@ CREATE TABLE
             )
         ),
         send_cost NUMERIC(12,2) CHECK (send_cost > 0), -- Shipping_Cost
-        send_time TIMESTAMPTZ NOT NULL CHECK (send_time >= reg_time), -- Ship_Date
+        send_time TIMESTAMPTZ NOT NULL, -- Ship_Date
         dest_city VARCHAR(100) NOT NULL, -- City
         dest_dist VARCHAR(100) NOT NULL, -- Region
         rec_postal VARCHAR(20) NOT NULL, -- Zip_Code
@@ -138,7 +158,7 @@ CREATE TABLE
         prod_id INTEGER NOT NULL,
         num INTEGER NOT NULL CHECK (num > 0),
         unit_price NUMERIC(12,2) CHECK (unit_price > 0),
-        discount INTEGER CHECK (discount BETWEEN 0 AND 100) DEFAULT 0,
+        discount INTEGER DEFAULT 0,
         production_cost NUMERIC(12,2) CHECK (production_cost > 0),
         PRIMARY KEY (ord_id, prod_id),
         FOREIGN KEY (ord_id) REFERENCES orders (ord_id),
@@ -214,7 +234,7 @@ CREATE TABLE
         ord_id INTEGER NOT NULL,
         pay_date TIMESTAMPTZ NOT NULL,
         amount NUMERIC(12,2) NOT NULL,
-        pay_met VARCHAR(11) NOT NULL CHECK (
+        pay_met VARCHAR(20) NOT NULL CHECK (
             pay_met IN ('Credit Card', 'Debit Card', 'Cash', 'Wallet')
         ),
         PRIMARY KEY (ord_id, pay_date),

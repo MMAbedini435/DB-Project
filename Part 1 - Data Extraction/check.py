@@ -6,7 +6,7 @@ csv_file = "dataset/csv/BDBKala_full.csv"
 # List of columns (or indices) you want to check
 # If your CSV has headers, use names like ["Order_Status","Payment_Method"]
 # If no headers, use indices like [0, 4, 5]
-wanted_columns = ["Order Priority","Order Status","Payment Method","Shipping Method","Ship Mode","Packaging","Shipping Cost","Ratings","Customer Segment","Gender"]
+wanted_columns = ["Discount", "Order Priority","Order Status","Payment Method","Shipping Method","Ship Mode","Packaging","Shipping Cost","Ratings","Customer Segment","Gender"]
 # Read CSV
 df = pd.read_csv(csv_file)
 
