@@ -1,3 +1,4 @@
+DROP TABLES IF EXISTS Refunds
 
 CREATE TABLE
     Refunds (

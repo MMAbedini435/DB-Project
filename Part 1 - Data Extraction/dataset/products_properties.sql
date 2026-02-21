@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS ProductProperties;
+
 CREATE TABLE ProductProperties(
    product_name VARCHAR(22) NOT NULL PRIMARY KEY
   ,category     VARCHAR(11) NOT NULL

@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS BrPrSu;
 CREATE TABLE BrPrSu(
    branch_name      VARCHAR(24) NOT NULL
   ,address          VARCHAR(54) NOT NULL
