@@ -42,5 +42,4 @@ WHERE s.total_sold >= 0.5 * s.branch_total
 $$;
 DROP INDEX IF EXISTS idx_order_product_ordid_prod;
 CREATE INDEX idx_order_product_ordid_prod ON order_product (ord_id, prod_id);
-EXPLAIN ANALYSE SELECT *
-FROM best_suppliers();
+SELECT * FROM best_suppliers();

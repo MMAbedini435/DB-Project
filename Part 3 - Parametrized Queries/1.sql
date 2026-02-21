@@ -18,5 +18,5 @@ WHERE p.cat_id = cat_id_param
   AND r.ord_id IS NULL
 GROUP BY p.subcat_name;
 $$;
-EXPLAIN ANALYSE
+
 SELECT * FROM average_profit_margin(1);
