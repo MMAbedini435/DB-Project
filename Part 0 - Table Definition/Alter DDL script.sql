@@ -23,16 +23,16 @@ ALTER TABLE orders
     ADD CONSTRAINT orders_pack_type_check
         CHECK (
             pack_type IN (
-                'Small box',
-                'Medium box',
-                'Large box',
-                'Small standard envelop',
-                'Large standard envelop',
-                'Small bubble mailer',
-                'Large bubble mailer'
+                'Box Small',
+                'Box Medium',
+                'Box Large',
+                'Envelope Small',
+                'Envelope Large',
+                'Bubble Envelope Small',
+                'Bubble Envelope Large'
             )
-            AND NOT (pack_type = 'Large standard envelop' AND send_met in ('Airmail', 'Air freight'))
-            AND NOT (pack_type in ('Small box', 'Medium box', 'Large box') AND send_met = 'Ground shipping')
+            AND NOT (pack_type = 'Envelope Large' AND send_met in ('Air (Post)', 'Air (Freight)'))
+            AND NOT (pack_type in ('Box Small', 'Box Medium', 'Box Large') AND send_met = 'Ground')
         );
 
 -- 5. orders: modify foreign key on branch_id to ON DELETE SET NULL
